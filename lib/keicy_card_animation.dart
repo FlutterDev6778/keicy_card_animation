@@ -25,6 +25,7 @@ class KeicyCardAnimation extends StatefulWidget {
 
 class _KeicyCardAnimationState extends State<KeicyCardAnimation> with TickerProviderStateMixin {
   List<AnimationController> _controllerList = [];
+  List<Timer> _timerList = [];
 
   @override
   void initState() {
@@ -34,6 +35,19 @@ class _KeicyCardAnimationState extends State<KeicyCardAnimation> with TickerProv
         AnimationController(duration: widget.childrenData[i]["duration"], vsync: this),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    for (var i = 0; i < _controllerList.length; i++) {
+      _controllerList[i].dispose();
+      try {
+        if (_timerList[i] != null) _timerList[i].cancel();
+      } catch (e) {}
+    }
+
+    // TODO: implement dispose
+    super.dispose();
   }
 
   @override
@@ -59,20 +73,24 @@ class _KeicyCardAnimationState extends State<KeicyCardAnimation> with TickerProv
 
     for (var i = 0; i < widget.childrenData.length; i++) {
       Future.delayed(widget.childrenData[i]["delay"], () {
-        _controllerList[i].forward();
-        _controllerList[i].addListener(() {
-          if (_controllerList[i].isCompleted) _controllerList[i].reset();
-        });
-      });
-    }
-    if (widget.isRepeated) {
-      Timer.periodic(totalDuration, (timer) {
-        for (var i = 0; i < widget.childrenData.length; i++) {
-          Future.delayed(widget.childrenData[i]["delay"], () {
-            _controllerList[i].forward();
+        if (_controllerList[i].status != AnimationStatus.dismissed) {
+          _controllerList[i].forward();
+          _controllerList[i].addListener(() {
+            if (_controllerList[i].isCompleted) _controllerList[i].reset();
           });
         }
       });
+    }
+    if (widget.isRepeated) {
+      _timerList.add(Timer.periodic(totalDuration, (timer) {
+        for (var i = 0; i < widget.childrenData.length; i++) {
+          Future.delayed(widget.childrenData[i]["delay"], () {
+            if (_controllerList[i].status != AnimationStatus.dismissed) {
+              _controllerList[i].forward();
+            }
+          });
+        }
+      }));
     }
 
     return Container(
