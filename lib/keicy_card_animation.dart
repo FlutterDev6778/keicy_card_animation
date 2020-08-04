@@ -45,6 +45,7 @@ class _KeicyCardAnimationState extends State<KeicyCardAnimation> with TickerProv
         if (_timerList[i] != null) _timerList[i].cancel();
       } catch (e) {}
     }
+    _controllerList = [];
 
     // TODO: implement dispose
     super.dispose();
@@ -73,7 +74,7 @@ class _KeicyCardAnimationState extends State<KeicyCardAnimation> with TickerProv
 
     for (var i = 0; i < widget.childrenData.length; i++) {
       Future.delayed(widget.childrenData[i]["delay"], () {
-        if (_controllerList[i].status != AnimationStatus.dismissed) {
+        if (_controllerList.length == 0) {
           _controllerList[i].forward();
           _controllerList[i].addListener(() {
             if (_controllerList[i].isCompleted) _controllerList[i].reset();
@@ -85,7 +86,7 @@ class _KeicyCardAnimationState extends State<KeicyCardAnimation> with TickerProv
       _timerList.add(Timer.periodic(totalDuration, (timer) {
         for (var i = 0; i < widget.childrenData.length; i++) {
           Future.delayed(widget.childrenData[i]["delay"], () {
-            if (_controllerList[i].status != AnimationStatus.dismissed) {
+            if (_controllerList.length == 0) {
               _controllerList[i].forward();
             }
           });
